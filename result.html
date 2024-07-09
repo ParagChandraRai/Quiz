@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Result</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="result-container">
+        <h1>Quiz Completed!</h1>
+        <p id="result"></p>
+        <button id="toggleChartButton" onclick="toggleChartType()">Switch to Bar Chart</button>
+        <canvas id="timeChart" width="600" height="200"></canvas>
+        <button onclick="restartQuiz()">Home</button>
+    </div>
+    <script>
+        let chart;
+        let chartType = 'line';
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const score = urlParams.get('score');
+            const total = urlParams.get('total');
+            const totalTimeTaken = urlParams.get('timeTaken');
+            const questionTimes = JSON.parse(urlParams.get('questionTimes'));
+            const correctAnswers = JSON.parse(urlParams.get('correctAnswers'));
+
+            const minutes = Math.floor(totalTimeTaken / 60);
+            const seconds = totalTimeTaken % 60;
+
+            const resultElement = document.getElementById('result');
+            resultElement.innerHTML = `You scored ${score} out of ${total}.<br>Total time taken: ${minutes} minutes and ${seconds} seconds.`;
+
+            // Prepare data for the chart
+            const labels = questionTimes.map((_, index) => `Question ${index + 1}`);
+            const backgroundColors = correctAnswers.map(answer => answer ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)');
+            const borderColors = correctAnswers.map(answer => answer ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)');
+            
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Time taken (seconds)',
+                    data: questionTimes,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            };
+
+            // Create the chart
+            const ctx = document.getElementById('timeChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: chartType,
+                data: data,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function toggleChartType() {
+            chartType = chartType === 'line' ? 'bar' : 'line';
+            const button = document.getElementById('toggleChartButton');
+            button.textContent = chartType === 'line' ? 'Switch to Bar Chart' : 'Switch to Line Chart';
+            chart.destroy();
+            window.onload();
+        }
+
+        function restartQuiz() {
+            window.location.href = 'home.html';
+        }
+    </script>
+</body>
+</html>
